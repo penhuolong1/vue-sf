@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>机构列表</title>
+  <link rel="stylesheet" href="./tool/layui.css" media="all">
+  <link rel="stylesheet" href="./tool/common.css" media="all">
+</head>
+<body>
+  <div id="tab2" style="height: 100%;">
+    <div class="shadow" :style="shadowHeight" v-if="shadowShow">
+      <p>加载中......</p>
+    </div>
+    <div class="common_table" style="width: 30%">
+      <form action="" method="get">
+        <p style="font-size: 20px;line-height: 30px;margin-bottom: 30px">请选择一个机构</p>
+        <label style="display: block;line-height: 50px;" v-for="(item,index) in listAry" >
+          <input name="list" type="radio"  :value="item.id" v-model="check" style="vertical-align: middle; margin-bottom: 2px;"/>
+          <span style="margin-left: 6px;font-size: 14px">{{item.name}}</span>
+        </label>
+      </form>
+      <button type="button" @click="submit()" class="layui-btn" style="margin-top: 20px;">&nbsp;&nbsp;确&nbsp;&nbsp;&nbsp;&nbsp;定&nbsp;&nbsp;</button>
+    </div>
+  </div>
+</body>
+<script src="./tool/jquery-1.8.3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript">
+var app = new Vue({
+  el: '#tab2',
+  data: {
+    shadowHeight: 'height:' + document.body.scrollHeight + 'px',
+    shadowShow: false,
+    fCourtId: '',
+    page: '', // 提交之后跳转的页面
+    listAry: [],
+    check: '' // 选中的id
+  },
+  mounted() {
+    this.fCourtId = this.GetRequest('fCourtId') // 获取链接上的参数--第三方机构
+    this.page = this.GetRequest('page')
+    this.alldata()
+  },
+  methods:{
+    // 获取回填数据
+    alldata() {
+      $.ajax({//执行异步ajax请求
+        type: "get",
+        async: "true",
+        timeout: 6000,
+        dataType: "json",
+        url: `${location.origin}/api/court/evaluation/list.jhtml`,
+        data: {fCourtId: this.fCourtId},//规定发送的数据（对象型）
+        success: (result, status, xhr)=> {
+          this.listAry = result.data
+        },
+        error: function () { }//失败可以不写
+      })
+    },
+    submit() {
+      if (!this.check) {
+        alert('请选择机构')
+        return false
+      } else {
+        window.location.href=`./${this.page}.html?zCourtId=${this.check}&&fCourtId=${this.fCourtId}`
+      }
+    },
+    // ---------------------------------------公共方法---------------------------
+    // 获取链接上的参数
+    GetRequest(value) {
+      // url例子：www.bicycle.com?id="123456"&Name="bicycle"；
+      var url = decodeURI(location.search); // ?id="123456"&Name="bicycle";
+      url = url.replace(/%2F/g, '/')
+      var object = {};
+      if (url.indexOf("?") != -1) {
+        // url中存在问号，也就说有参数。
+        var str = url.substr(1); // 得到?后面的字符串
+        var strs = str.split("&"); // 将得到的参数分隔成数组[id="123456",Name="bicycle"];
+        for (var i = 0; i < strs.length; i++) {
+          object[strs[i].split("=")[0]] = strs[i].split("=")[1];
+        }
+      }
+      return object[value] ? object[value] : "";
+    },
+  }
+})
+</script>
+</html>

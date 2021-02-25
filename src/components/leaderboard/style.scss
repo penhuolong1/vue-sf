@@ -1,0 +1,36 @@
+.leader-board-wrapper {
+  .leader-board-item {
+    display: flex;
+    line-height: 50px;
+    border-bottom: 1px solid #f5f5f5;
+    color: #757575;
+    font-size: 15px;
+    &.top1 {
+      color: #1B85CF!important;
+    }
+    &>div {
+      &:nth-child(1) {
+        flex: 1;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        padding: 0 10px;
+        padding-left: 30px;
+        position: relative;
+        img {
+          position: absolute;
+          width: 12px;
+          height: 20px;
+          left: 7px;
+          top: 15px;
+        }
+      }
+      &:nth-child(2) {
+        width: 200px;
+      }
+      &:nth-child(3) {
+        width: 200px;
+      }
+    }
+  }
+}

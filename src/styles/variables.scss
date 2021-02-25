@@ -1,0 +1,39 @@
+$themeColor: #2475FE; //主题颜色
+$fontColor: #464A53; //字体的黑色
+$wrapperBg: #F1F4F7;
+
+// sidebar
+$menuText:#6C708C;
+$menuActiveText:#fff;
+$menuActiveBg: #2475FE;
+$subMenuActiveText:#409EFF; //https://github.com/ElemeFE/element/issues/12951
+
+$menuBg:white; // 菜单背景颜色
+$menuHover:#5585c9;
+$menuHoverText:white;
+
+$subMenuBg:white;
+$subMenuHover:#5585c9;
+$subMenuHoverText:white;
+$IconColor:#409EFF;
+$IconBg: #F2FEFF;
+$IconHoverColor:white;
+
+$sideBarWidth: 240px;
+$minWidth: 1100px;
+// the :export directive is the magic sauce for webpack
+// https://www.bluematador.com/blog/how-to-share-variables-between-js-and-sass
+:export {
+  themeColor: $themeColor;
+  wrapperBg: $wrapperBg;
+  menuText: $menuText;
+  menuActiveText: $menuActiveText;
+  subMenuActiveText: $subMenuActiveText;
+  menuBg: $menuBg;
+  menuHover: $menuHover;
+  subMenuBg: $subMenuBg;
+  subMenuHover: $subMenuHover;
+  sideBarWidth: $sideBarWidth;
+  IconBg: $IconBg;
+  fontColor: $fontColor;
+}

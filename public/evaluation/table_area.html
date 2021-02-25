@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>对各区的考核标准</title>
+  <link rel="stylesheet" href="./tool/layui.css" media="all">
+  <link rel="stylesheet" href="./tool/common.css" media="all">
+</head>
+<body>
+  <div id="tab2" style="height: 100%;">
+    <!-- <div class="shadow" :style="shadowHeight" v-if="shadowShow">
+      <p>加载中......</p>
+    </div> -->
+    <div class="common_table">
+      <table class="layui-table">
+        <tbody>
+          <tr>
+            <td colspan = "4" style="font-size: 18px">区责任单位考评表</td>
+          </tr>
+          <tr>
+            <td style="width: 22%">考核内容</td>
+            <td style="width: 46%">考核标准</td>
+            <td style="width: 16%">自评</td>
+            <td style="width: 16%">复评</td>
+          </tr>
+          <tr v-for="(item, index) in dataAry" :key='index'>
+            <td>{{item.title}}</td>
+            <td class="text_left">{{item.content}}</td>
+            <td style="width: 16%">
+              {{item.statisticalType=='负' ?  '—' : ''}}
+              <input type="number" v-model="item.zscores" class="inputClass" :disabled="zCourtId && !fCourtId ? false : true">
+            </td>
+            <td style="width: 16%">
+              {{item.statisticalType=='负' ?  '—' : ''}}
+              <input type="number" v-model="item.fscores" class="inputClass" :disabled="zCourtId && fCourtId ? false : true">
+            </td>
+          </tr>
+          <tr>
+            <td>合计</td>
+            <td></td>
+            <td><input type="text" v-model="fullMarks_z" class="inputClass" :disabled="zCourtId && !fCourtId ? false : true" @focus='focusNum1()'></td>
+            <td><input type="text" v-model="fullMarks_f" class="inputClass" :disabled="zCourtId && fCourtId ? false : true" @focus='focusNum1()'></td>
+          </tr>
+          <tr class="text_left">
+            <td colspan = "4">备注：诉非联动工作考评按照百分制计算，基础分值为90分，最后得分根据市平安综治建设考评分值折算</td>
+          </tr>
+        </tbody>
+      </table>
+      <button type="button" @click="submit()" class="layui-btn" style="margin-top: 20px;">&nbsp;&nbsp;提&nbsp;&nbsp;&nbsp;&nbsp;交&nbsp;&nbsp;</button>
+    </div>
+  </div>
+</body>
+<script src="./tool/jquery-1.8.3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script type="text/javascript">
+var app = new Vue({
+  el: '#tab2',
+  data: {
+    shadowHeight: 'height:' + document.body.scrollHeight + 'px',
+    shadowShow: false,
+    zCourtId: '', // 自评id
+    fCourtId: '', // 复评id
+    dataAry: [], // 所有数据
+    fullMarks_z: null, // 自评合计
+    fullMarks_f: null // 复评合计
+  },
+  mounted() {
+    // 页面的很多数据都是根据zCourtId和fCourtId做判断，两个同时存在表示复评, 只存在zCourtId表示自评
+    this.zCourtId = this.GetRequest('zCourtId') ? this.GetRequest('zCourtId') : ''// 获取链接上的参数--当前用户
+    this.fCourtId = this.GetRequest('fCourtId') ? this.GetRequest('fCourtId') : '' // 获取链接上的参数--第三方机构
+    this.alldata()
+  },
+  methods:{
+    // 获取回填数据
+    alldata() {
+      $.ajax({//执行异步ajax请求
+        type: "get",
+        async: "true",
+        timeout: 6000,
+        dataType: "json",
+        url: 'https://sftest.olcourt.cn/api/court/evaluation/getInfo.jhtml',
+        data: {zCourtId: this.zCourtId},//规定发送的数据（对象型）
+        success: (result, status, xhr)=> {
+          this.dataAry = result.data
+          this.focusNum1()
+        },
+        error: function () { }//失败可以不写
+      })
+    },
+    // 合计 -- 聚焦触发
+    focusNum1() {
+      let fullMarks = 90
+      let flog = 1
+      // 自评分数
+      if (this.zCourtId && !this.fCourtId) {
+        this.dataAry.map((item,index)=>{
+          fullMarks = fullMarks + (item.statisticalType=='负' ? item.zscores*(-1) : item.zscores*1)
+          
+          if (this.dataAry.length-1 == index) {
+            this.fullMarks_z = fullMarks
+          }
+        })
+      }
+      let fullMarks1 = 90
+      if (this.zCourtId && this.fCourtId) {
+        this.dataAry.map((item,index)=>{
+          fullMarks = fullMarks + (item.statisticalType=='负' ? item.fscores*(-1) : item.fscores*1)
+          fullMarks1 = fullMarks1 + (item.statisticalType=='负' ? item.zscores*(-1) : item.zscores*1)
+          if (this.dataAry.length-1 == index) {
+            this.fullMarks_z = fullMarks1
+            this.fullMarks_f = fullMarks
+          }
+        })
+      }
+    },
+    // 提交数据
+    submit() {
+      let flog = 0 //标记是否评分过 1表示有未评项
+      this.dataAry.map((item,index)=>{
+        if (this.zCourtId && !this.fCourtId) { 
+          if(item.zscores!==null){
+            flog = 0
+          } else {
+            flog = 1
+          }
+        } else if (this.zCourtId && this.fCourtId){
+          if(item.fscores!==null){
+            flog = 0
+          } else {
+            flog = 1
+          }
+        }
+      })
+      if (flog>0) {
+        alert('分数请填写完整')
+        return false
+      }
+      this.focusNum1()
+      let numAry = [] // 提交的分数数组
+      this.dataAry.map((item,index)=>{
+        let obj = {
+          id: item.id,
+          zscore: item.zscores*1,
+          fscore: item.fscores*1
+        }
+        numAry.push(obj)
+      })
+      let subObj = {
+        type: '区',
+        zCourtId: this.zCourtId,
+        fCourtId: this.fCourtId,
+        evaScores: this.fullMarks_z, // 自评合计
+        evaScoresRe: this.fullMarks_f, // 复评合计
+        data: JSON.stringify(numAry)
+      }
+      $.ajax({//执行异步ajax请求
+        type: "post",
+        async: "true",
+        timeout: 6000,
+        dataType: "json",
+        url: 'https://sftest.olcourt.cn/api/court/evaluation/add.jhtml ',
+        data: subObj,//规定发送的数据（对象型）
+        success: (result, status, xhr)=> {
+          alert(result.message)
+          if (result.state==100 && this.zCourtId && this.fCourtId) { 
+            window.location.href=`./list.html?fCourtId=${this.fCourtId}`
+          }
+        },
+        error: function () {}//失败可以不写
+      })
+    },
+    // ---------------------------------------公共方法---------------------------
+    // 获取链接上的参数
+    GetRequest(value) {
+      // url例子：www.bicycle.com?id="123456"&Name="bicycle"；
+      var url = decodeURI(location.search); // ?id="123456"&Name="bicycle";
+      url = url.replace(/%2F/g, '/')
+      var object = {};
+      if (url.indexOf("?") != -1) {
+        // url中存在问号，也就说有参数。
+        var str = url.substr(1); // 得到?后面的字符串
+        var strs = str.split("&"); // 将得到的参数分隔成数组[id="123456",Name="bicycle"];
+        for (var i = 0; i < strs.length; i++) {
+          object[strs[i].split("=")[0]] = strs[i].split("=")[1];
+        }
+      }
+      return object[value] ? object[value] : "";
+    }
+  }
+})
+</script>
+</html>
